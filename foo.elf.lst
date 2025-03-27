@@ -1,0 +1,149 @@
+
+foo.elf:     file format elf32-littlearm
+
+
+Disassembly of section .text:
+
+00000000 <vector_table>:
+   0:	20001000 	andcs	r1, r0, r0
+   4:	000001d1 	ldrdeq	r0, [r0], -r1
+	...
+  3c:	000001e9 	andeq	r0, r0, r9, ror #3
+	...
+
+000001d0 <reset_handler>:
+    .section .text
+    .align 2
+    .type reset_handler, %function
+
+reset_handler:
+    mov r5, #0
+ 1d0:	2500      	movs	r5, #0
+
+    ldr r0, =systick_csr
+ 1d2:	4806      	ldr	r0, [pc, #24]	@ (1ec <break_here+0x2>)
+    ldr r1, =systick_rvr
+ 1d4:	4906      	ldr	r1, [pc, #24]	@ (1f0 <break_here+0x6>)
+    ldr r2, =systick_cvr
+ 1d6:	4a07      	ldr	r2, [pc, #28]	@ (1f4 <break_here+0xa>)
+    ldr r3, =timeout
+ 1d8:	f06f 437f 	mvn.w	r3, #4278190080	@ 0xff000000
+
+//programming systick
+    str r3, [r1] //24 bit 1 is placed onto reload_value_reg
+ 1dc:	600b      	str	r3, [r1, #0]
+    mov r3, #0x0
+ 1de:	2300      	movs	r3, #0
+    str r3, [r2] //0 bcoz writing anything will set the cvr to 0 and countflg in csr to 0
+ 1e0:	6013      	str	r3, [r2, #0]
+    mov r3, #0x7 //setting last  3 bits to 1 in csr:[0]->1=counter enabled, [1]->1=counting down to 0 asserts systick exception, [2]->1=processor clock
+ 1e2:	2307      	movs	r3, #7
+    str r3, [r0]
+ 1e4:	6003      	str	r3, [r0, #0]
+
+    
+    b .    
+ 1e6:	e7fe      	b.n	1e6 <reset_handler+0x16>
+
+000001e8 <systick_handler>:
+    .section .text
+    .align 2
+    .type systick_handler, %function
+
+systick_handler:
+    add r5, r5, #1
+ 1e8:	3501      	adds	r5, #1
+
+000001ea <break_here>:
+break_here:
+ 1ea:	4770      	bx	lr
+    ldr r0, =systick_csr
+ 1ec:	e000e010 	and	lr, r0, r0, lsl r0
+    ldr r1, =systick_rvr
+ 1f0:	e000e014 	and	lr, r0, r4, lsl r0
+    ldr r2, =systick_cvr
+ 1f4:	e000e018 	and	lr, r0, r8, lsl r0
+
+Disassembly of section .ARM.attributes:
+
+00000000 <.ARM.attributes>:
+   0:	00002041 	andeq	r2, r0, r1, asr #32
+   4:	61656100 	cmnvs	r5, r0, lsl #2
+   8:	01006962 	tsteq	r0, r2, ror #18
+   c:	00000016 	andeq	r0, r0, r6, lsl r0
+  10:	726f4305 	rsbvc	r4, pc, #335544320	@ 0x14000000
+  14:	2d786574 	cfldr64cs	mvdx6, [r8, #-464]!	@ 0xfffffe30
+  18:	0600334d 	streq	r3, [r0], -sp, asr #6
+  1c:	094d070a 	stmdbeq	sp, {r1, r3, r8, r9, sl}^
+  20:	Address 0x20 is out of bounds.
+
+
+Disassembly of section .debug_line:
+
+00000000 <.debug_line>:
+   0:	0000003f 	andeq	r0, r0, pc, lsr r0
+   4:	00190002 	andseq	r0, r9, r2
+   8:	01020000 	mrseq	r0, (UNDEF: 2)
+   c:	000a0efb 	strdeq	r0, [sl], -fp
+  10:	01010101 	tsteq	r1, r1, lsl #2
+  14:	01000000 	mrseq	r0, (UNDEF: 0)
+  18:	6f6f6600 	svcvs	0x006f6600
+  1c:	0000532e 	andeq	r5, r0, lr, lsr #6
+  20:	00000000 	andeq	r0, r0, r0
+  24:	01d00205 	bicseq	r0, r0, r5, lsl #4
+  28:	17030000 	strne	r0, [r3, -r0]
+  2c:	1e1e1f01 	cdpne	15, 1, cr1, cr14, cr1, {0}
+  30:	1e1e2e1e 	mrcne	14, 0, r2, cr14, cr14, {0}
+  34:	25201e1e 	strcs	r1, [r0, #-3614]!	@ 0xfffff1e2
+  38:	1d69031f 	stclne	3, cr0, [r9, #-124]!	@ 0xffffff84
+  3c:	02022c2c 	andeq	r2, r2, #44, 24	@ 0x2c00
+  40:	Address 0x40 is out of bounds.
+
+
+Disassembly of section .debug_info:
+
+00000000 <.debug_info>:
+   0:	00000022 	andeq	r0, r0, r2, lsr #32
+   4:	00000002 	andeq	r0, r0, r2
+   8:	01040000 	mrseq	r0, (UNDEF: 4)
+   c:	00000000 	andeq	r0, r0, r0
+  10:	000001d0 	ldrdeq	r0, [r0], -r0	@ <UNPREDICTABLE>
+  14:	000001f8 	strdeq	r0, [r0], -r8
+  18:	00000000 	andeq	r0, r0, r0
+  1c:	00000006 	andeq	r0, r0, r6
+  20:	00000015 	andeq	r0, r0, r5, lsl r0
+  24:	Address 0x24 is out of bounds.
+
+
+Disassembly of section .debug_abbrev:
+
+00000000 <.debug_abbrev>:
+   0:	10001101 	andne	r1, r0, r1, lsl #2
+   4:	12011106 	andne	r1, r1, #-2147483647	@ 0x80000001
+   8:	1b0e0301 	blne	380c14 <break_here+0x380a2a>
+   c:	130e250e 	movwne	r2, #58638	@ 0xe50e
+  10:	00000005 	andeq	r0, r0, r5
+
+Disassembly of section .debug_aranges:
+
+00000000 <.debug_aranges>:
+   0:	0000001c 	andeq	r0, r0, ip, lsl r0
+   4:	00000002 	andeq	r0, r0, r2
+   8:	00040000 	andeq	r0, r4, r0
+   c:	00000000 	andeq	r0, r0, r0
+  10:	000001d0 	ldrdeq	r0, [r0], -r0	@ <UNPREDICTABLE>
+  14:	00000028 	andeq	r0, r0, r8, lsr #32
+	...
+
+Disassembly of section .debug_str:
+
+00000000 <.debug_str>:
+   0:	2e6f6f66 	cdpcs	15, 6, cr6, cr15, cr6, {3}
+   4:	682f0053 	stmdavs	pc!, {r0, r1, r4, r6}	@ <UNPREDICTABLE>
+   8:	2f656d6f 	svccs	0x00656d6f
+   c:	74726f63 	ldrbtvc	r6, [r2], #-3939	@ 0xfffff09d
+  10:	6d2d7865 	stcvs	8, cr7, [sp, #-404]!	@ 0xfffffe6c
+  14:	554e4700 	strbpl	r4, [lr, #-1792]	@ 0xfffff900
+  18:	20534120 	subscs	r4, r3, r0, lsr #2
+  1c:	32342e32 	eorscc	r2, r4, #800	@ 0x320
+	...
